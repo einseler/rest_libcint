@@ -1,100 +1,3 @@
-//! # rust-libcint
-//!
-//! The `rust-libcint` crate provides wrappers for libcint (C).
-//!
-//! In order to use the crate, the libcint should be installed with the outcome library `libcint.so` stored in a reachable path by users.
-//!
-//! Please visit <https://github.com/sunqm/libcint> for more details about the installation and the usage of libcint
-//!
-//! The `CINTR2CDATA` struct groups all necessary data for using `libcint`.
-//! Various kinds of analytical Gaussian-type orbital (GTO) integrals provided by `libcint` are then wrapped as the methods defined on the `CINTR2CDATA` struct.
-//!
-//! Currently, only four kinds of integrals are available for both spheric and Cartesian GTOs, including 
-//! 1) the one-electron kinetic integral (```CINTR2CDATA::cint_ijkin```),
-//! 2) the one-electron nuclear attractive integral (```CINT2CDATA::cint_ijnuc```), 
-//! 3) the one-electron overlap integral (```CINTR2CDATA::cint_ijovlp```), 
-//! 4) the two-electron repulsive integral (```CINTR2CDATA::cint_ijkl```).
-//! The other kinds of integrals are not yet ready in the current version.
-//!
-//! The integrals:```Vec<f64>``` produced by the CINTR2CDATA methods aformentioned are arranged in
-//! the convention of `column-major` matrices according to the definition by `libcint`. 
-//!
-//! # Examples
-//!
-//!
-//! ```
-//! //=============================================================================
-//! // Prepare `atm`, `bas` and `env` with the same data structures of those used by `libcint`.
-//! // Refer to <https://github.com/sunqm/libcint/blob/master/doc/program_ref.pdf> 
-//! // for the details of these data structures.
-//! //=============================================================================
-//! let mut atm: Vec<Vec<i32>> = vec![];
-//! atm.push(vec![2,0,0,0,0,0]);
-//! atm.push(vec![4,3,0,0,0,0]);
-//! let mut natm = atm.len() as i32;
-//! let mut bas: Vec<Vec<i32>> = vec![];
-//! bas.push(vec![0,1,1,1,1,6,7,0]);
-//! bas.push(vec![0,2,1,1,1,8,9,0]);
-//! let mut nbas = bas.len() as i32;
-//! let mut env: Vec<f64> = vec![0.0,0.0,0.0,0.7,0.0,0.0,1.0,1.0,0.5,1.0];
-//! //=============================================================================
-//! // Transfer `atm`, `bas`, and `env` to the raw pointers,
-//! // and organize them by the data structure of `CINTR2CDATA`.
-//! //=============================================================================
-//! use rust_libcint::{CINTR2CDATA,CintType};
-//! let mut cint_data = CINTR2CDATA::new();
-//! cint_data.initial_r2c(&atm,natm,&bas,nbas,env);
-//! //=============================================================================
-//! //The 2-electron repulsive integrals (ERIs) for spheric Gaussian-type orbitals
-//! //=============================================================================
-//! // The GTO functions considered here are spheric.
-//! // For Cartesian GTOs, replace `CintType::Spheric` by 
-//! //  `CintType::Cartesian` on the following line:
-//! cint_data.set_cint_type(&CintType::Spheric);
-//! cint_data.cint2e_optimizer_rust();
-//! let buf = cint_data.cint_ijkl(0,1,1,0);
-//! let mut v1:f64=0.0;
-//! &buf.into_iter().for_each(|i| {v1 += i.abs()});
-//! println!("The reference data for cint2e ERIs: 0.5745411555937561; v1: {:18.16}; ",v1);
-//! //=============================================================================
-//! //The one-electron overlap integrals for spheric Gaussian-type orbitals
-//! //=============================================================================
-//! cint_data.cint_del_optimizer_rust();
-//! // The GTO functions considered here are spheric
-//! cint_data.set_cint_type(&CintType::Spheric);
-//! cint_data.cint1e_ovlp_optimizer_rust();
-//! let buf = cint_data.cint_ijovlp(0,1);
-//! let mut v1:f64=0.0;
-//! &buf.into_iter().for_each(|i| {v1 += i.abs()});
-//! println!("The reference data for cint1e_ovlp: 0.7096366827378776; v1: {:18.16}; ",v1);
-//! //=============================================================================
-//! //The one-electron kinetic integrals for Cartesian Gaussian-type orbitals
-//! //=============================================================================
-//! cint_data.cint_del_optimizer_rust();
-//! // The GTO functions considered here are Cartesian
-//! cint_data.set_cint_type(&CintType::Cartesian);
-//! cint_data.cint1e_kin_optimizer_rust();
-//! let buf = cint_data.cint_ijkin(0,1);
-//! let mut v1:f64=0.0;
-//! &buf.into_iter().for_each(|i| {v1 += i.abs()});
-//! println!("The reference data for cint1e_kin : 1.5780816190296618; v1: {:18.16}; ",v1);
-//! //=============================================================================
-//! //The one-electron nuclear attraction integrals for Cartesian Gaussian-type orbitals
-//! //=============================================================================
-//! cint_data.cint_del_optimizer_rust();
-//! // The GTO functions considered here are Cartesian
-//! cint_data.set_cint_type(&CintType::Cartesian);
-//! cint_data.cint1e_nuc_optimizer_rust();
-//! let buf = cint_data.cint_ijnuc(0,1);
-//! let mut v1:f64=0.0;
-//! &buf.into_iter().for_each(|i| {v1 += i.abs()});
-//! println!("The reference data for cint1e_nuc : 4.0007622494430706; v1: {:18.16}; ",v1);
-//! //=============================================================================
-//! // Finally deallocate the memory by transferring the raw pointers back to RUST
-//! // i.e. Vec::from_raw_parts();
-//! //=============================================================================
-//! cint_data.final_c2r();
-//! ```
 
 #![allow(unused)]
 use std::os::raw::c_int;
@@ -107,7 +10,6 @@ use crate::cint::{CINTOpt,CINTdel_optimizer};
 pub enum CintType {
    Spheric,
    Cartesian,
-   //Spinor,  // Not yet included
 }
 
 pub enum IJOPT {
@@ -235,11 +137,31 @@ impl CINTR2CDATA {
                                        self.c_env.0);
         }
     }
+    pub fn cint2e_derivative_optimizer_rust(&mut self){
+        self.cint_del_optimizer_rust();
+        //self.cint_init_2e_optimizer_rust();
+        unsafe {
+            cint::int2e_ip1_optimizer(&mut self.c_opt.0, 
+                                       self.c_atm.0, self.c_natm, 
+                                       self.c_bas.0, self.c_nbas, 
+                                       self.c_env.0);
+        }
+    }
     pub fn cint1e_ovlp_optimizer_rust(&mut self){
         self.cint_del_optimizer_rust();
         //self.cint_init_optimizer_rust();
         unsafe {
             cint::cint1e_ovlp_optimizer(&mut self.c_opt.0, 
+                                       self.c_atm.0, self.c_natm, 
+                                       self.c_bas.0, self.c_nbas, 
+                                       self.c_env.0);
+        }
+    }
+    pub fn cint1e_ipovlp_optimizer_rust(&mut self){
+        self.cint_del_optimizer_rust();
+        //self.cint_init_optimizer_rust();
+        unsafe {
+            cint::cint1e_ipovlp_optimizer(&mut self.c_opt.0, 
                                        self.c_atm.0, self.c_natm, 
                                        self.c_bas.0, self.c_nbas, 
                                        self.c_env.0);
@@ -260,6 +182,26 @@ impl CINTR2CDATA {
         //self.cint_init_optimizer_rust();
         unsafe {
             cint::int1e_kin_optimizer(&mut self.c_opt.0, 
+                                       self.c_atm.0, self.c_natm, 
+                                       self.c_bas.0, self.c_nbas, 
+                                       self.c_env.0);
+        }
+    }
+    pub fn cint1e_ipkin_optimizer_rust(&mut self){
+        self.cint_del_optimizer_rust();
+        //self.cint_init_optimizer_rust();
+        unsafe {
+            cint::int1e_ipkin_optimizer(&mut self.c_opt.0, 
+                                       self.c_atm.0, self.c_natm, 
+                                       self.c_bas.0, self.c_nbas, 
+                                       self.c_env.0);
+        }
+    }
+    pub fn cint1e_dipole_optimizer_rust(&mut self){
+        self.cint_del_optimizer_rust();
+        
+        unsafe {
+            cint::int1e_r_optimizer(&mut self.c_opt.0, 
                                        self.c_atm.0, self.c_natm, 
                                        self.c_bas.0, self.c_nbas, 
                                        self.c_env.0);
@@ -334,7 +276,7 @@ impl CINTR2CDATA {
         }
        new_buf
     }
-    pub fn cint_ijkl_by_shell(&mut self, i:i32,j:i32,k:i32,l:i32) -> Vec<f64> {
+    pub fn cint_ijkl(&self, i:i32,j:i32,k:i32,l:i32) -> Vec<f64> {
         let mut di = self.cint_cgto_rust(i);
         let mut dj = self.cint_cgto_rust(j);
         let mut dk = self.cint_cgto_rust(k);
@@ -459,50 +401,254 @@ impl CINTR2CDATA {
         }
         new_buf
     }
-}
+    pub fn cint_ijovlp(&mut self, i:i32,j:i32) -> Vec<f64> {
+        let mut di: i32 = self.cint_cgto_rust(i);
+        let mut dj: i32 = self.cint_cgto_rust(j);
+    
+        let mut shls: Vec<c_int> = vec![i as c_int,j as c_int];
+        shls.shrink_to_fit();
+        let mut shls = ManuallyDrop::new(shls);
+        let (c_shls,shls_len,shls_cap) = (shls.as_mut_ptr() as *mut c_int,shls.len(),shls.capacity());
+    
+        let mut buf: Vec<f64> = [0.0f64].repeat((di*dj) as usize);
+        buf.shrink_to_fit();
+        let mut buf = ManuallyDrop::new(buf);
+        let (c_buf, buf_len, buf_cap) = (buf.as_mut_ptr() as *mut f64, buf.len(), buf.capacity());
+    
+        let mut new_buf:Vec<f64>;
+        unsafe {
+            match self.cint_type {
+                CintType::Spheric => cint::cint1e_ovlp_sph(
+                           c_buf, c_shls,
+                             self.c_atm.0, self.c_natm,
+                             self.c_bas.0,self.c_nbas,
+                             self.c_env.0,
+                             self.c_opt.0),
+                CintType::Cartesian => cint::cint1e_ovlp_cart(
+                           c_buf, c_shls,
+                             self.c_atm.0, self.c_natm,
+                             self.c_bas.0,self.c_nbas,
+                             self.c_env.0,
+                             self.c_opt.0),
+            };
+            let shls = Vec::from_raw_parts(c_shls, shls_len, shls_cap);
+            new_buf = Vec::from_raw_parts(c_buf, buf_len, buf_cap);
+        }
+        new_buf
+    }
+    pub fn cint_ijovlp_derivative(&mut self, i:i32,j:i32) -> Vec<f64> {
+        let mut di: i32 = self.cint_cgto_rust(i);
+        let mut dj: i32 = self.cint_cgto_rust(j);
+    
+        let mut shls: Vec<c_int> = vec![i as c_int,j as c_int];
+        shls.shrink_to_fit();
+        let mut shls = ManuallyDrop::new(shls);
+        let (c_shls,shls_len,shls_cap) = (shls.as_mut_ptr() as *mut c_int,shls.len(),shls.capacity());
+    
+        let mut buf: Vec<f64> = [0.0f64].repeat((di*dj*3) as usize);
+        buf.shrink_to_fit();
+        let mut buf = ManuallyDrop::new(buf);
+        let (c_buf, buf_len, buf_cap) = (buf.as_mut_ptr() as *mut f64, buf.len(), buf.capacity());
+    
+        let mut new_buf:Vec<f64>;
+        unsafe {
+            match self.cint_type {
+                CintType::Spheric => cint::cint1e_ipovlp_sph(
+                           c_buf, c_shls,
+                             self.c_atm.0, self.c_natm,
+                             self.c_bas.0,self.c_nbas,
+                             self.c_env.0,
+                             self.c_opt.0),
+                CintType::Cartesian => cint::cint1e_ipovlp_cart(
+                           c_buf, c_shls,
+                             self.c_atm.0, self.c_natm,
+                             self.c_bas.0,self.c_nbas,
+                             self.c_env.0,
+                             self.c_opt.0),
+            };
+            let shls = Vec::from_raw_parts(c_shls, shls_len, shls_cap);
+            new_buf = Vec::from_raw_parts(c_buf, buf_len, buf_cap);
+        }
+        new_buf
+    }
+    pub fn cint_ijnuc(&mut self, i:i32,j:i32) -> Vec<f64> {
+        let mut di: i32 = self.cint_cgto_rust(i);
+        let mut dj: i32 = self.cint_cgto_rust(j);
+    
+        let mut shls: Vec<c_int> = vec![i as c_int,j as c_int];
+        shls.shrink_to_fit();
+        let mut shls = ManuallyDrop::new(shls);
+        let (c_shls,shls_len,shls_cap) = (shls.as_mut_ptr() as *mut c_int,shls.len(),shls.capacity());
+    
+        let mut buf: Vec<f64> = [0.0f64].repeat((di*dj) as usize);
+        buf.shrink_to_fit();
+        let mut buf = ManuallyDrop::new(buf);
+        let (c_buf, buf_len, buf_cap) = (buf.as_mut_ptr() as *mut f64, buf.len(), buf.capacity());
+    
+        let mut new_buf:Vec<f64>;
+        unsafe {
+            match self.cint_type {
+                CintType::Spheric =>  cint::cint1e_nuc_sph(
+                           c_buf, c_shls,
+                             self.c_atm.0, self.c_natm,
+                             self.c_bas.0,self.c_nbas,
+                             self.c_env.0,
+                             self.c_opt.0),
+                CintType::Cartesian =>  cint::cint1e_nuc_cart(
+                           c_buf, c_shls,
+                             self.c_atm.0, self.c_natm,
+                             self.c_bas.0,self.c_nbas,
+                             self.c_env.0,
+                             self.c_opt.0),
+            };
+            let shls = Vec::from_raw_parts(c_shls, shls_len, shls_cap);
+            new_buf = Vec::from_raw_parts(c_buf, buf_len, buf_cap);
+        }
+        new_buf
+    }
 
-//pub fn cint2e_sph_rust(mut buf: Vec<f64>, mut shls: Vec<i32>, 
-//                   c_atm: & *mut c_int, c_natm:c_int, 
-//                   c_bas: & *mut c_int, c_nbas:c_int, 
-//                   c_env: & *mut f64,
-//                   c_opt: & *mut CINTOpt) -> Vec<f64> {
-//    //
-//    buf.shrink_to_fit();
-//    let mut buf = ManuallyDrop::new(buf);
-//    let (c_buf, buf_len, buf_cap) = (buf.as_mut_ptr() as *mut f64, buf.len(), buf.capacity());
-//
-//    shls.shrink_to_fit();
-//    let mut shls = ManuallyDrop::new(shls);
-//    let (c_shls,shls_len,shls_cap) = (shls.as_mut_ptr() as *mut c_int,shls.len(),shls.capacity());
-//    let mut new_buf:Vec<f64>;
-//    unsafe {
-//        cint::cint2e_sph(c_buf, c_shls, *c_atm, c_natm, *c_bas, c_nbas, *c_env, *c_opt);
-//        //println!("debug 1 {}", &c_buf.read());
-//        let shls = Vec::from_raw_parts(c_shls, shls_len, shls_cap);
-//        new_buf = Vec::from_raw_parts(c_buf, buf_len, buf_cap);
-//        //println!("debug 2");
-//        //vec![0.0,0.0]
-//    }
-//    new_buf
-//}
-//pub fn cint1e_ovlp_sph_rust(mut buf: Vec<f64>, mut shls: Vec<i32>, 
-//                   c_atm: & *mut c_int, c_natm:c_int, 
-//                   c_bas: & *mut c_int, c_nbas:c_int, 
-//                   c_env: & *mut f64,
-//                   c_opt: & *mut CINTOpt) -> Vec<f64> {
-//    //
-//    buf.shrink_to_fit();
-//    let mut buf = ManuallyDrop::new(buf);
-//    let (c_buf, buf_len, buf_cap) = (buf.as_mut_ptr() as *mut f64, buf.len(), buf.capacity());
-//
-//    shls.shrink_to_fit();
-//    let mut shls = ManuallyDrop::new(shls);
-//    let (c_shls,shls_len,shls_cap) = (shls.as_mut_ptr() as *mut c_int,shls.len(),shls.capacity());
-//    let mut new_buf:Vec<f64>;
-//    unsafe {
-//        cint::cint1e_ovlp_sph(c_buf, c_shls, *c_atm, c_natm, *c_bas, c_nbas, *c_env, *c_opt);
-//        let shls = Vec::from_raw_parts(c_shls, shls_len, shls_cap);
-//        new_buf = Vec::from_raw_parts(c_buf, buf_len, buf_cap);
-//    }
-//    new_buf
-//}
+    pub fn cint_ijkin(&mut self, i:i32,j:i32) -> Vec<f64> {
+        let mut di: i32 = self.cint_cgto_rust(i);
+        let mut dj: i32 = self.cint_cgto_rust(j);
+    
+        let mut shls: Vec<c_int> = vec![i as c_int,j as c_int];
+        shls.shrink_to_fit();
+        let mut shls = ManuallyDrop::new(shls);
+        let (c_shls,shls_len,shls_cap) = (shls.as_mut_ptr() as *mut c_int,shls.len(),shls.capacity());
+    
+        let mut buf: Vec<f64> = [0.0f64].repeat((di*dj) as usize);
+        buf.shrink_to_fit();
+        let mut buf = ManuallyDrop::new(buf);
+        let (c_buf, buf_len, buf_cap) = (buf.as_mut_ptr() as *mut f64, buf.len(), buf.capacity());
+    
+        let mut new_buf:Vec<f64>;
+        unsafe {
+            match self.cint_type {
+                CintType::Spheric => cint::cint1e_kin_sph(
+                              c_buf, c_shls,
+                                self.c_atm.0, self.c_natm,
+                                self.c_bas.0,self.c_nbas,
+                                self.c_env.0,
+                                self.c_opt.0),
+                CintType::Cartesian => cint::cint1e_kin_cart(
+                              c_buf, c_shls,
+                                self.c_atm.0, self.c_natm,
+                                self.c_bas.0,self.c_nbas,
+                                self.c_env.0,
+                                self.c_opt.0),
+            };
+            let shls = Vec::from_raw_parts(c_shls, shls_len, shls_cap);
+            new_buf = Vec::from_raw_parts(c_buf, buf_len, buf_cap);
+        }
+        new_buf
+    }
+
+    pub fn cint_ijkin_derivative(&mut self, i:i32,j:i32) -> Vec<f64> {
+        let mut di: i32 = self.cint_cgto_rust(i);
+        let mut dj: i32 = self.cint_cgto_rust(j);
+    
+        let mut shls: Vec<c_int> = vec![i as c_int,j as c_int];
+        shls.shrink_to_fit();
+        let mut shls = ManuallyDrop::new(shls);
+        let (c_shls,shls_len,shls_cap) = (shls.as_mut_ptr() as *mut c_int,shls.len(),shls.capacity());
+    
+        let mut buf: Vec<f64> = [0.0f64].repeat((di*dj*3) as usize);
+        buf.shrink_to_fit();
+        let mut buf = ManuallyDrop::new(buf);
+        let (c_buf, buf_len, buf_cap) = (buf.as_mut_ptr() as *mut f64, buf.len(), buf.capacity());
+    
+        let mut new_buf:Vec<f64>;
+        unsafe {
+            match self.cint_type {
+                CintType::Spheric => cint::cint1e_ipkin_sph(
+                              c_buf, c_shls,
+                                self.c_atm.0, self.c_natm,
+                                self.c_bas.0,self.c_nbas,
+                                self.c_env.0,
+                                self.c_opt.0),
+                CintType::Cartesian => cint::cint1e_ipkin_cart(
+                              c_buf, c_shls,
+                                self.c_atm.0, self.c_natm,
+                                self.c_bas.0,self.c_nbas,
+                                self.c_env.0,
+                                self.c_opt.0),
+            };
+            let shls = Vec::from_raw_parts(c_shls, shls_len, shls_cap);
+            new_buf = Vec::from_raw_parts(c_buf, buf_len, buf_cap);
+        }
+        new_buf
+    }
+
+    pub fn cint_ij_dipole(&mut self, i:i32,j:i32) -> Vec<f64> {
+        let mut di: i32 = self.cint_cgto_rust(i);
+        let mut dj: i32 = self.cint_cgto_rust(j);
+    
+        let mut shls: Vec<c_int> = vec![i as c_int,j as c_int];
+        shls.shrink_to_fit();
+        let mut shls = ManuallyDrop::new(shls);
+        let (c_shls,shls_len,shls_cap) = (shls.as_mut_ptr() as *mut c_int,shls.len(),shls.capacity());
+    
+        let mut buf: Vec<f64> = [0.0f64].repeat((di*dj*3) as usize);
+        buf.shrink_to_fit();
+        let mut buf = ManuallyDrop::new(buf);
+        let (c_buf, buf_len, buf_cap) = (buf.as_mut_ptr() as *mut f64, buf.len(), buf.capacity());
+    
+        let mut new_buf:Vec<f64>;
+        unsafe {
+            match self.cint_type {
+                CintType::Spheric => cint::cint1e_r_sph(
+                           c_buf, c_shls,
+                             self.c_atm.0, self.c_natm,
+                             self.c_bas.0,self.c_nbas,
+                             self.c_env.0,
+                             self.c_opt.0),
+                CintType::Cartesian => cint::cint1e_r_cart(
+                           c_buf, c_shls,
+                             self.c_atm.0, self.c_natm,
+                             self.c_bas.0,self.c_nbas,
+                             self.c_env.0,
+                             self.c_opt.0),
+            };
+            let shls = Vec::from_raw_parts(c_shls, shls_len, shls_cap);
+            new_buf = Vec::from_raw_parts(c_buf, buf_len, buf_cap);
+        }
+        new_buf
+    }
+
+    pub fn cint_ijkl_derivative(&self, i:i32,j:i32,k:i32,l:i32) -> Vec<f64> {
+        let mut di = self.cint_cgto_rust(i);
+        let mut dj = self.cint_cgto_rust(j);
+        let mut dk = self.cint_cgto_rust(k);
+        let mut dl = self.cint_cgto_rust(l);
+    
+        let mut shls: Vec<c_int> = vec![i as c_int,j as c_int,k as c_int,l as c_int];
+        //shls.shrink_to_fit();
+        let mut shls = ManuallyDrop::new(shls);
+        let (c_shls,shls_len,shls_cap) = (shls.as_mut_ptr() as *mut c_int,shls.len(),shls.capacity());
+    
+        let mut buf: Vec<f64> = vec![0.0;(di*dj*dk*dl*3) as usize];
+        //buf.shrink_to_fit();
+        let mut buf = ManuallyDrop::new(buf);
+        let (c_buf, buf_len, buf_cap) = (buf.as_mut_ptr() as *mut f64, buf.len(), buf.capacity());
+
+        let mut new_buf:Vec<f64>;
+        unsafe {
+            match self.cint_type {
+                CintType::Spheric => cint::cint2e_ip1_sph(c_buf, c_shls,
+                                                    self.c_atm.0, self.c_natm,
+                                                    self.c_bas.0,self.c_nbas,
+                                                    self.c_env.0,
+                                                    self.c_opt.0),
+                CintType::Cartesian => cint::cint2e_ip1_cart(c_buf, c_shls,
+                                                    self.c_atm.0, self.c_natm,
+                                                    self.c_bas.0,self.c_nbas,
+                                                    self.c_env.0,
+                                                    self.c_opt.0),
+            };
+            //println!("debug 1 {}", &c_buf.read());
+            //let shls = Vec::from_raw_parts(c_shls, shls_len, shls_cap);
+            new_buf = Vec::from_raw_parts(c_buf, buf_len, buf_cap);
+        }
+       new_buf
+    }
+}

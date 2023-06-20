@@ -165,6 +165,34 @@ extern "C" {
         nbas: ::std::os::raw::c_int,
         env: *const f64,
     );
+    pub fn cint1e_ipovlp_sph(
+        opijkl: *mut f64,
+        shls: *const ::std::os::raw::c_int,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+        opt: *const CINTOpt,
+    ) -> ::std::os::raw::c_int;
+    pub fn cint1e_ipovlp_cart(
+        opijkl: *mut f64,
+        shls: *const ::std::os::raw::c_int,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+        opt: *const CINTOpt,
+    ) -> ::std::os::raw::c_int;
+    pub fn cint1e_ipovlp_optimizer(
+        opt: *mut *mut CINTOpt,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+    );
     pub fn cint1e_nuc_sph(
         opijkl: *mut f64,
         shls: *const ::std::os::raw::c_int,
@@ -221,6 +249,62 @@ extern "C" {
         nbas: ::std::os::raw::c_int,
         env: *const f64,
     );
+    pub fn cint1e_ipkin_sph(
+        opijkl: *mut f64,
+        shls: *const ::std::os::raw::c_int,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+        opt: *const CINTOpt,
+    ) -> ::std::os::raw::c_int;
+    pub fn cint1e_ipkin_cart(
+        opijkl: *mut f64,
+        shls: *const ::std::os::raw::c_int,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+        opt: *const CINTOpt,
+    ) -> ::std::os::raw::c_int;
+    pub fn int1e_ipkin_optimizer(
+        opt: *mut *mut CINTOpt,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+    );
+    pub fn cint1e_r_cart(
+        out: *mut f64,
+        shls: *const ::std::os::raw::c_int,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+        opt: *const CINTOpt,
+    ) -> ::std::os::raw::c_int;
+    pub fn cint1e_r_sph(
+        out: *mut f64,
+        shls: *const ::std::os::raw::c_int,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+        opt: *const CINTOpt,
+    ) -> ::std::os::raw::c_int;
+    pub fn int1e_r_optimizer(
+        opt: *mut *mut CINTOpt,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+    );
     pub fn CINTinit_2e_optimizer(
         opt: *mut *mut CINTOpt,
         atm: *const ::std::os::raw::c_int,
@@ -237,6 +321,35 @@ extern "C" {
         nbas: ::std::os::raw::c_int,
         env: *const f64,
     );
+    pub fn int2e_ip1_optimizer(
+        opt: *mut *mut CINTOpt,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+    );
+    pub fn cint2e_ip1_cart(
+        out: *mut f64,
+        shls: *const ::std::os::raw::c_int,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+        opt: *const CINTOpt,
+    );
+    pub fn cint2e_ip1_sph(
+        out: *mut f64,
+        shls: *const ::std::os::raw::c_int,
+        atm: *const ::std::os::raw::c_int,
+        natm: ::std::os::raw::c_int,
+        bas: *const ::std::os::raw::c_int,
+        nbas: ::std::os::raw::c_int,
+        env: *const f64,
+        opt: *const CINTOpt,
+    );
+
     pub fn CINTdel_2e_optimizer(opt: *mut *mut CINTOpt);
     pub fn CINTdel_optimizer(opt: *mut *mut CINTOpt);
 }
